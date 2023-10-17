@@ -1,0 +1,96 @@
+#include "shell.h"
+
+/**
+ * _myenv - handles the 'env' command
+ * @info: A pointer to the shell information struct
+ *
+ * Return: 0
+ */
+int _myenv(info_t *info)
+{
+	/* Print the environment variables list */
+	print_list_str(info->env);
+	return (0);
+}
+
+/**
+ * _getenv - retrieves an environment variable from the environment list
+ * @info: A pointer to the shell information struct
+ * @name: The name of the environment variable to retrieve
+ *
+ * Return: pointer to the value of the
+ * environment variable, or NULL if not found
+ */
+char *_getenv(info_t *info, const char *name)
+{
+	list_t *node = info->env;
+	char *p;
+
+	while (node)
+	{
+		p = starts_with(node->str, name);
+		if (p && *p)
+			return (p);
+		node = node->next;
+	}
+	return (NULL);
+}
+
+/**
+ * _mysetenv - handles the 'setenv' command
+ * @info: A pointer to the shell information struct
+ *
+ * Return: 1 on success, 0 on failure
+ */
+int _mysetenv(info_t *info)
+{
+	if (info->argc != 3)
+	{
+		_eputs("Incorrect number of arguments\n");
+		return (1);
+	}
+	if (_setenv(info, info->argv[1], info->argv[2]))
+		return (0);
+	return (1);
+}
+
+/**
+ * _myunsetenv - handles the 'unsetenv' command
+ * @info: A pointer to the shell information struct
+ *
+ * Return: 0
+ */
+int _myunsetenv(info_t *info)
+{
+	int i;
+
+	if (info->argc == 1)
+	{
+		_eputs("Too few arguments.\n");
+		return (1);
+	}
+	for (i = 1; i < info->argc; i++)
+		_unsetenv(info, info->argv[i]);
+
+	return (0);
+}
+
+/**
+ * populate_env_list - populates the environment list
+ * from the global 'environ' variable
+ * @info: A pointer to the shell information struct
+ *
+ * Return: 0
+ */
+int populate_env_list(info_t *info)
+{
+	list_t *node = NULL;
+	size_t i;
+
+	/* Copy environment variables from the 'environ' array to the list */
+	for (i = 0; environ[i]; i++)
+		add_node_end(&node, environ[i], 0);
+
+	info->env = node; /* Update the environment list in the shell info struct */
+	return (0);
+}
